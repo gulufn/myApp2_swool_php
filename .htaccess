@@ -1,0 +1,8 @@
+CGIPassAuth On
+RewriteEngine On
+
+RewriteRule ^ index.php [QSA,L]
+
+
+RewriteCond %{HTTP:Authorization} ^(.+)$
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
