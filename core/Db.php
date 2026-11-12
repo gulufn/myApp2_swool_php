@@ -143,7 +143,7 @@ class Db
      * @param  array  $fields ['id','email',......]
      * @return array  $rdata  
      */
-    public static function select_data_by_token_users(\PDO $pdo,string $token, array $fields = []): array{
+    public static function select_data_by_token_users( $pdo,string $token, array $fields = []): array{
         // 白名单，防止 SQL 注入
         $allowed = ['id', 'email', 'pwd', 'captcha', 'captcha_update_time','token','token_update_time','is_activated','register_time'];
         try {

@@ -1,13 +1,13 @@
 <?php
+//Utils.php
 namespace Core;
-
-class Utils
-{
+class Utils{
     //响应
-    public static function jsonResponse(\Swoole\Http\Response $response, $data, int $status = 200): void {
+    public static function jsonResponse(\Swoole\Http\Response $response,array $data, int $status = 200): void {
         $response->status($status);
+        // 设置响应类型，json格式
         $response->header('Content-Type', 'application/json; charset=utf-8');
-        //响应的是json, 中文等非 ASCII 字符不转义，原样输出 | 输出带缩进换行的格式化 JSON，便于阅读
+        // 响应的是json, 中文等非 ASCII 字符不转义，原样输出 | 输出带缩进换行的格式化 JSON，便于阅读,
         $response->end(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
     }
     //输出$length长度的随机数字符串

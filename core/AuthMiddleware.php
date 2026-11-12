@@ -1,49 +1,68 @@
 <?php
-// header('Content-Type: application/json');
-header("Access-Control-Allow-Origin: * ");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
 //拦截器
-require_once BASE_PATH . '/config/mysql_init.php';
 require_once BASE_PATH  . '/core/Db.php';
 use Core\Db;
+require_once BASE_PATH . '/core/Utils.php';
+use Core\Utils;
 
 class AuthMiddleware {
-    public function handle(): array {
-        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-            http_response_code(204);
-            exit(0);
+    public function handle($pdo): array {
+        //获取需要的对象和数据
+        $db = new Db;
+        $ctx = \Swoole\Coroutine::getContext();
+        $response = $ctx['response'];
+        $req=$ctx['req'];
+
+        //获取token
+        $token = $this->getToken($req);
+        if($token === ''){
+            $rdata=['status'=>0,'msg'=>'没有token'];
+            Utils::jsonResponse($response,$rdata,401);
+            return [];
         }
-       
-        $token = $this->getToken();
-        if($token === null){
-            $this->reject(400, 'token不可为空');
+        $payload = $this->verifyToken($token,$pdo,$db,$response);
+        if (!$payload) {
+            $rdata=['status'=>0,'msg'=>'token无效'];
+            Utils::jsonResponse($response,$rdata,401);
+            return [];
         }
-        if ($token === '') {
-            $this->reject(402, 'token不可以为空字符串');
-        }
+        
         return $payload;
     }
-
-    private function getToken(): ?string {
-        $header = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+    //从$req里获取token，并返回
+    private function getToken(array $req): string {
+        //获取请求头中的authorization，（由客户端设置，一般放token）
+        $header=$req['authorization'];
+        //用正则提取token并返回，没匹配到就是false
         if (preg_match('/Bearer\s(\S+)/i', $header, $m)) {
             return $m[1];
         }
-        return $_GET['token'] ?? $_POST['token'] ?? null;
+        return $req['get']['token'] ?? $req['post']['token'] ?? '';
     }
-
-    private function verifyToken(string $token): ?array {
-        if($token !== 'abcd'){
-             $this->reject(403, 'Token错误');
+    //验证token
+    private function verifyToken($token,$pdo,$db,$response): array {
+        //开始查询
+        $r = $db->select_data_by_token_users($pdo, $token, ['id','token_update_time']);
+        if($r['code'] == 0){
+            $rdata=['status'=>0,'msg'=>'sql执行失败'];
+            Utils::jsonResponse($response,$rdata,500);
+            return [];
+        }
+        // 查不到 / 返回结构不对 / data 为空，都视为无效
+        if (!$r || !isset($r['data']) || empty($r['data'])) {
+            $rdata=['status'=>0,'msg'=>'token查询失败'];
+            Utils::jsonResponse($response,$rdata,401);
+            return [];
+        }
+        //计算时间差
+        $seconds = time() - strtotime($r['data']['token_update_time']);
+        if($seconds > 60*60*24){
+            $rdata=['status'=>0,'msg'=>'token已过期，请重新登录'];
+            Utils::jsonResponse($response,$rdata,401);
+            return [];
         }
         return $r['data'];
     }
 
-    private function reject(int $code, string $msg): void {
-        header('Content-Type: application/json');
-        $response = array('status' => $code,'msg' =>$msg);
-        echo json_encode($response);    
-        exit();
-    }
+  
 }
