@@ -1,9 +1,9 @@
 <?php
 // index.php
 
-require_once BASE_PATH . '/core/Utils.php';
+require_once BASE_PATH . '/core/HttpResponse.php';
 require_once BASE_PATH . '/core/AuthMiddleware.php';
-use Core\Utils;
+
 
 function handleRequest($router,$pdo){
     //获取上下文
@@ -20,7 +20,7 @@ function handleRequest($router,$pdo){
     //文件不存在就返回404
     if (!$file || !file_exists(BASE_PATH . '/' . $file)) {
         $rdata=['status'=>0,'msg'=>'路由不存在'];
-        Utils::jsonResponse($response,$rdata,404);
+        \Core\HttpResponse::jsonResponse($response,$rdata,404);
         return;
     }
 

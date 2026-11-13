@@ -1,7 +1,4 @@
 <?php
-require_once BASE_PATH . '/core/Utils.php';
-use Core\Utils;
-
 
 $r=[];
 
@@ -19,5 +16,5 @@ try {
 }
 
 $d=['status'=>1,'msg'=>'这是test1','data'=>$r];
-Utils::jsonResponse($response,$d);
+\Core\HttpResponse::jsonResponse($response,$d);
 return;

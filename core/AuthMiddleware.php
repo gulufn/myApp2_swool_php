@@ -2,8 +2,8 @@
 //拦截器
 require_once BASE_PATH  . '/core/Db.php';
 use Core\Db;
-require_once BASE_PATH . '/core/Utils.php';
-use Core\Utils;
+require_once BASE_PATH . '/core/HttpResponse.php';
+use Core\HttpResponse;      //语法糖，起短名
 
 class AuthMiddleware {
     public function handle($pdo): array {
@@ -17,13 +17,13 @@ class AuthMiddleware {
         $token = $this->getToken($req);
         if($token === ''){
             $rdata=['status'=>0,'msg'=>'没有token'];
-            Utils::jsonResponse($response,$rdata,401);
+            HttpResponse::jsonResponse($response,$rdata,401);
             return [];
         }
         $payload = $this->verifyToken($token,$pdo,$db,$response);
         if (!$payload) {
             $rdata=['status'=>0,'msg'=>'token无效'];
-            Utils::jsonResponse($response,$rdata,401);
+            HttpResponse::jsonResponse($response,$rdata,401);
             return [];
         }
         
@@ -45,20 +45,20 @@ class AuthMiddleware {
         $r = $db->select_data_by_token_users($pdo, $token, ['id','token_update_time']);
         if($r['code'] == 0){
             $rdata=['status'=>0,'msg'=>'sql执行失败'];
-            Utils::jsonResponse($response,$rdata,500);
+            HttpResponse::jsonResponse($response,$rdata,500);
             return [];
         }
         // 查不到 / 返回结构不对 / data 为空，都视为无效
         if (!$r || !isset($r['data']) || empty($r['data'])) {
             $rdata=['status'=>0,'msg'=>'token查询失败'];
-            Utils::jsonResponse($response,$rdata,401);
+            HttpResponse::jsonResponse($response,$rdata,401);
             return [];
         }
         //计算时间差
         $seconds = time() - strtotime($r['data']['token_update_time']);
         if($seconds > 60*60*24){
             $rdata=['status'=>0,'msg'=>'token已过期，请重新登录'];
-            Utils::jsonResponse($response,$rdata,401);
+            HttpResponse::jsonResponse($response,$rdata,401);
             return [];
         }
         return $r['data'];
