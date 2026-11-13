@@ -15,6 +15,7 @@ try {
     $r= ['code'=>0,'msg'=>'sql执行失败','data'=>$rdata];
 }
 
+
 $d=['status'=>1,'msg'=>'这是test1','data'=>$r];
 \Core\HttpResponse::jsonResponse($response,$d);
 return;
