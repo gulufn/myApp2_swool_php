@@ -12,7 +12,7 @@ class Db
      * @param  array $data 数据类型为关联数组 字段名 => 值，如 ['email' => 'a@x.com', 'pwd' => 'xxx']
      * @return array $rdata
      */
-    public static function insert_data_users(\PDO $pdo,array $data = []): array{
+    public static function insert_data_users( $pdo,array $data = []): array{
         // 允许插入的字段白名单
         $allowed = ['email', 'pwd', 'captcha', 'captcha_update_time', 'token', 'token_update_time', 'is_activated', 'register_time'];
         try {
@@ -49,7 +49,7 @@ class Db
      * @param  array  $fields ['id','email',......]
      * @return array  $rdata  
      */
-    public static function select_data_by_meail_users(\PDO $pdo,string $email, array $fields = []): array{
+    public static function select_data_by_meail_users( $pdo,string $email, array $fields = []): array{
         // 白名单，防止 SQL 注入
         $allowed = ['id', 'email', 'pwd', 'captcha', 'captcha_update_time','token','token_update_time','is_activated','register_time'];
         try {
@@ -82,7 +82,7 @@ class Db
      * @param  array  $data   数据类型为关联数组 字段名 => 值，如 ['captcha' => '6666', 'pwd' => 'xxx']
      * @return array  $rdata  
      */
-    public static function update_data_users(\PDO $pdo,string $email,array $data = []): array{
+    public static function update_data_users($pdo,string $email,array $data = []): array{
         // 允许插入的字段白名单
         $allowed = ['email', 'pwd', 'captcha', 'captcha_update_time', 'token', 'token_update_time', 'is_activated', 'register_time'];
         try {
@@ -118,7 +118,7 @@ class Db
      * @param  string $email  'a@x.comg'
      * @return array  $rdata  
      */
-    public static function delete_data_by_meail_users(\PDO $pdo,string $email): array{
+    public static function delete_data_by_meail_users( $pdo,string $email): array{
         try {
             $sql = "DELETE FROM users WHERE email = :email";
             //预处理
@@ -176,7 +176,7 @@ class Db
      * @param  array $data 数据类型为关联数组 字段名 => 值，如 ['user_id' => '1', 'content' => 'xxx']
      * @return array $rdata
      */
-    public static function insert_data_chat(\PDO $pdo,array $data = []): array{
+    public static function insert_data_chat( $pdo,array $data = []): array{
         // 允许插入的字段白名单
         $allowed = ['id', 'user_id', 'content', 'role', 'target_lang', 'created_at', 'status','link'];
         try {
@@ -211,7 +211,7 @@ class Db
      * @param  int    $user_id
      * @return array  $rdata
      */
-    public static function select_one_data_by_userid_chat(\PDO $pdo,$user_id): array {
+    public static function select_one_data_by_userid_chat( $pdo,$user_id): array {
         try {
             $sql = "SELECT id,content,`role`,target_lang,created_at,`status` FROM chat WHERE user_id = :user_id AND `role` = 1 AND `status` != 2 ORDER BY created_at DESC LIMIT 1";
             // 预处理
@@ -238,7 +238,7 @@ class Db
      * @param  int    $link               
      * @return array  $rdata
      */
-    public static function select_data_by_userid_link_chat(\PDO $pdo,$user_id,$link): array {
+    public static function select_data_by_userid_link_chat( $pdo,$user_id,$link): array {
         try {
             $sql = "SELECT id,content,`role`,target_lang,created_at,`status` FROM chat WHERE user_id = :user_id AND `role` = 2 AND `status` != 2 AND link = :link";
             // 预处理
@@ -264,7 +264,7 @@ class Db
      * @param  \PDO   $pdo
      * @return array  $rdata
      */
-    public static function select_data_by_role_chat(\PDO $pdo): array {
+    public static function select_data_by_role_chat( $pdo): array {
         try {
             $sql = "SELECT * FROM chat WHERE role = 1  AND status = 0 ORDER BY created_at ASC LIMIT 1";
             // 预处理
@@ -288,7 +288,7 @@ class Db
      * @param  int    $user_id
      * @return array  $rdata
      */
-    public static function select_data_by_userid_chat(\PDO $pdo,$user_id): array {
+    public static function select_data_by_userid_chat( $pdo,$user_id): array {
         try {
             $sql = "SELECT id,content,`role`,target_lang,created_at,`status` FROM chat WHERE user_id = :user_id AND `status` != 2 ORDER BY created_at DESC LIMIT 10";
             // 预处理
@@ -314,7 +314,7 @@ class Db
      * @param  string $youbiao
      * @return array  $rdata
      */
-    public static function select_data_by_userid_youbiao_chat(\PDO $pdo,$user_id,$youbiao): array {
+    public static function select_data_by_userid_youbiao_chat( $pdo,$user_id,$youbiao): array {
         try {
             $sql = "SELECT id,content,`role`,target_lang,created_at,`status` FROM chat WHERE user_id = :user_id  AND created_at < :youbiao ORDER BY created_at DESC LIMIT 5";
             // 预处理
@@ -342,7 +342,7 @@ class Db
      * @param  int    $status   数据类型为关联数组 字段名 => 值，如 ['status' => 1]
      * @return array  $rdata  
      */
-    public static function update_data_chat(\PDO $pdo,int $id,array $data = []): array{
+    public static function update_data_chat( $pdo,int $id,array $data = []): array{
         // 允许插入的字段白名单
         $allowed = ['id', 'user_id', 'content', 'role', 'target_lang', 'created_at', 'status'];
         try {

@@ -45,7 +45,7 @@ class AuthMiddleware {
         $r = $db->select_data_by_token_users($pdo, $token, ['id','token_update_time']);
         if($r['code'] == 0){
             $rdata=['status'=>0,'msg'=>'sql执行失败'];
-            HttpResponse::jsonResponse($response,$rdata,500);
+            HttpResponse::jsonResponse($response,$rdata,501);
             return [];
         }
         // 查不到 / 返回结构不对 / data 为空，都视为无效

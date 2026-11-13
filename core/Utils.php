@@ -2,14 +2,6 @@
 //Utils.php
 namespace Core;
 class Utils{
-    //响应
-    public static function jsonResponse(\Swoole\Http\Response $response,array $data, int $status = 200): void {
-        $response->status($status);
-        // 设置响应类型，json格式
-        $response->header('Content-Type', 'application/json; charset=utf-8');
-        // 响应的是json, 中文等非 ASCII 字符不转义，原样输出 | 输出带缩进换行的格式化 JSON，便于阅读,
-        $response->end(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
-    }
     //输出$length长度的随机数字符串
     public static function randomNumber(int $length):string{
         $captcha='';
@@ -32,8 +24,31 @@ class Utils{
         }
         return $timePart . $randPart;
     }
+    //输出图片的二进制数据流
+    public static function generateCaptcha($c): string {
+        $img=imagecreate(60,20);
+        $color=imagecolorallocate($img,rand(0,255),rand(0,255),rand(0,255));    //画布背景颜色
+        $white=imagecolorallocate($img,255,255,255);     //相当于画笔
+        imageline($img,rand(0,60),rand(0,20),rand(0,60),rand(0,20),$white);     //画一条白线
+        imageline($img,rand(0,60),rand(0,20),rand(0,60),rand(0,20),$white);
+        imageline($img,rand(0,60),rand(0,20),rand(0,60),rand(0,20),$white);
+        imageline($img,rand(0,60),rand(0,20),rand(0,60),rand(0,20),$white);
+        // imagearc($img,250,100,150,150,0,360,$white);   //画一个圆
+        // imagerectangle($img,350,20,500,170,$white);   //画一个正方形
+
+        $x=random_int(-5,5);
+        $y=random_int(-5,5);
+
+        imagestring($img, 5, $x, $y, $c, $white);
+
+        ob_start();
+        imagegif($img);            // 输出到缓冲区
+        $data = ob_get_clean();    // 取出二进制字符串
+        imagedestroy($img);
+        return $data;              // 返回图片二进制
+    }
     //验证邮箱是否合法
-    public static function judgeEmail(string $json){
+    public static function judgeEmail(string $json): array{
         $post_json=json_decode($json,true);
         if (!is_array($post_json) || array_is_list($post_json)) {
             $response=array('status' => 0, 'msg' => 'JSON 格式错误');
