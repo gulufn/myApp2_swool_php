@@ -1,12 +1,5 @@
 <?php
 //routes.php
-// return [
-//     '/test'                       => ['file' => 'controllers/test/test.php',                'auth' => true],
-//     '/test1'                      => ['file' => 'controllers/test/test1.php',               'auth' => false],
-
-// ];
-
-
 
 return [
     '/user/get_picture_captcha'    => ['controller' => 'UserController',    'action' => 'get_picture_captcha',   'auth' => false,],
@@ -15,7 +8,12 @@ return [
     '/user/register'               => ['controller' => 'UserController',    'action' => 'register',              'auth' => false,],
     '/user/login_by_pwd'           => ['controller' => 'UserController',    'action' => 'login_by_pwd',          'auth' => false,],
     '/user/login_by_email'         => ['controller' => 'UserController',    'action' => 'login_by_email',        'auth' => false,],
-    '/user/verify_token'           => ['controller' => 'UserController',    'action' => 'verify_token',          'auth' => false,],
+    '/user/verify_token'           => ['controller' => 'UserController',    'action' => 'verify_token',          'auth' => true,],
+
+
+    //需要鉴权的接口
+    '/user/change_pwd_by_old_pwd'        => ['controller' => 'UserController',    'action' => 'change_pwd_by_old_pwd',       'auth' => true,],
+    '/user/change_pwd_by_email_captcha'  => ['controller' => 'UserController',    'action' => 'change_pwd_by_email_captcha', 'auth' => true,],
 
     '/test'     => ['controller' => 'TestController',    'action' => 'test',    'auth' => true,],
 

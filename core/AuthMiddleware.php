@@ -42,7 +42,7 @@ class AuthMiddleware {
     //验证token
     private function verifyToken($token,$pdo,$db,$response): array {
         //开始查询
-        $r = $db->select_data_by_token_users($pdo, $token, ['id','token_update_time']);
+        $r = $db->select_data_by_token_users($pdo, $token, ['id','token_update_time','is_activated']);
         if($r['code'] == 0){
             $rdata=['status'=>0,'msg'=>'sql执行失败'];
             HttpResponse::jsonResponse($response,$rdata,501);
@@ -59,6 +59,11 @@ class AuthMiddleware {
         if($seconds > 60*60*24){
             $rdata=['status'=>0,'msg'=>'token已过期，请重新登录'];
             HttpResponse::jsonResponse($response,$rdata,401);
+            return [];
+        }
+        if($r['data']['is_activated'] == 0){
+            $rdata=['status'=>0,'msg'=>'账号已被冻结，请解冻'];
+            HttpResponse::jsonResponse($response,$rdata,403);
             return [];
         }
         return $r['data'];

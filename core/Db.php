@@ -73,6 +73,38 @@ class Db
             return ['code'=>0,'msg'=>'sql执行失败','data'=>$rdata];
         }
     }
+    /**
+     * 查询通过邮箱查询数据
+     *
+     * @param  \PDO   $pdo
+     * @param  string $user_id  'a@x.comg'
+     * @param  array  $fields ['id','email',......]
+     * @return array  $rdata  
+     */
+    public static function select_data_by_userid_users( $pdo,string $user_id, array $fields = []): array{
+        // 白名单，防止 SQL 注入
+        $allowed = ['id', 'email', 'pwd', 'captcha', 'captcha_update_time','token','token_update_time','is_activated','register_time'];
+        try {
+            //取两个数组的交集
+            $fields = array_intersect($fields, $allowed);
+            //如果传入的数组是空数组，则return
+            if (empty($fields)) {return ['code'=>'0','msg'=>'没有合法字段','data'=>''];}
+            //把$fields数组里的元素用逗号连接
+            $cols = implode(',', $fields);
+            $sql = "SELECT {$cols} FROM users WHERE id = :id";
+            //预处理
+            $statement = $pdo->prepare($sql);
+            //绑定值
+            $statement->bindValue(':id', $user_id);
+            //执行sql
+            $statement->execute();
+            $row = $statement->fetch();
+            return ['code'=>1,'msg'=>'成功','data'=>$row === false ? false : $row];
+        }catch (\PDOException $e) {
+            $rdata=['sql'=>$sql,'error'=>$e->getMessage(),'sqlstate'=>$e->getCode(),'params'=>$fields];
+            return ['code'=>0,'msg'=>'sql执行失败','data'=>$rdata];
+        }
+    }
 
     /**
      * 通过邮箱更新数据

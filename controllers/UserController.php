@@ -43,7 +43,6 @@ class UserController
             return;
         }
     }
-
     //图片接口，接收加密的验证码，解密后渲染返回图片
     public function picture_captcha_img($pdo, $req,$response,$redisPool){
         //获取网址里的参数
@@ -80,7 +79,7 @@ class UserController
             if($select_email['data']){
                 
                 //限制获取频率
-                $seconds = time() - strtotime($data['data']['captcha_update_time']);
+                $seconds = time() - strtotime($select_email['data']['captcha_update_time']);
                 if($seconds < 60){
                     $rdata=array('status' => 0,'msg' => '验证码获取太频繁，1分钟后重试');
                     \Core\HttpResponse::jsonResponse($response,$rdata);
@@ -221,7 +220,7 @@ class UserController
         }
 
     }
-
+    //通过密码登录
     public function login_by_pwd($pdo, $req,$response,$redisPool){
         if ($req['request_method'] === 'POST') {
             $json = $req['raw_content'];
@@ -293,7 +292,7 @@ class UserController
             return;
         }
     }
-
+    //通过邮箱验证码登录
     public function login_by_email($pdo, $req,$response,$redisPool){
         if ($req['request_method'] === 'POST') {
             $json = $req['raw_content'];
@@ -372,11 +371,12 @@ class UserController
         }
 
     }
-
+    //验证token
     public function verify_token($pdo, $req,$response,$redisPool){
         if ($req['request_method'] === 'GET') {
             //获取请求头中的authorization，（由客户端设置，一般放token）
             $header=$req['authorization'];
+            $token = '';
             //用正则提取token并返回，没匹配到就是false
             if (preg_match('/Bearer\s(\S+)/i', $header, $m)) {
                 $token = $m[1];
@@ -388,9 +388,14 @@ class UserController
                 \Core\HttpResponse::jsonResponse($response,$rdata);
                 return;
             }
+            if(!$r['data']){
+                $rdata = array('status' => 0,'msg' =>'没有查到该token');
+                \Core\HttpResponse::jsonResponse($response,$rdata);
+                return;
+            }
             $seconds = time() - strtotime($r['data']['token_update_time']);
             if($seconds > 60*60*24){
-                $rdata = array('status' => 0,'msg' =>'token已过期，请重新登3录','t'=>$token);
+                $rdata = array('status' => 0,'msg' =>'token已过期，请重新登3录','t'=>$r);
                 \Core\HttpResponse::jsonResponse($response,$rdata);
                 return;
             }
@@ -402,6 +407,114 @@ class UserController
         }else{
             $rdata = array('status' => 0,'msg' => '请使用使用get请求');
             \Core\HttpResponse::jsonResponse($response,$rdata);
+            return;
+        }
+    }
+    //验证通过旧密码更改密码
+    public function change_pwd_by_old_pwd($pdo, $req,$response,$redisPool){
+        if ($req['request_method'] === 'POST') {
+            $json = $req['raw_content'];
+            $data = Utils::judge_user_setting($json);
+            if($data['status']===0){
+                \Core\HttpResponse::jsonResponse($response,$data);
+                return;
+            }
+            //获取上下文
+            $ctx = \Swoole\Coroutine::getContext();
+            $user_id = $ctx['user_id'] ?? '';
+
+            $r = Db::select_data_by_userid_users($pdo,$user_id,['id','pwd','email']);
+            
+            if($r['code']==0){
+                $data = array('status' => 0,'msg' => "数据库查询失败");
+                \Core\HttpResponse::jsonResponse($response,$data);
+                return;
+            }
+            if(!$r['data']){
+                $data = array('status' => 0,'msg' => "该id没有查询到信息");
+                \Core\HttpResponse::jsonResponse($response,$data);
+                return;
+            }
+            
+            $old_pwd = $data['old_pwd'];
+            $new_pwd = $data['new_pwd'];
+            
+            if(hash('sha256',$old_pwd.'jiaoyan') != $r['data']['pwd']){
+                $data = array('status' => 0,'msg' =>'密码错误');
+                \Core\HttpResponse::jsonResponse($response,$data);
+                return;
+            }
+
+            $r = Db::update_data_users($pdo,$r['data']['email'],['pwd'=>hash('sha256',$new_pwd.'jiaoyan')]);
+            if($r['code']==0){
+                $data = array('status' => 0,'msg' =>'更新密码失败');
+                \Core\HttpResponse::jsonResponse($response,$data);
+                return;
+            }
+            $data = array('status' => 1,'msg' =>'密码更新成功');
+            \Core\HttpResponse::jsonResponse($response,$data);
+            return;
+        }else{
+            $data = array('status' => 0,'msg' => '请使用post请求');
+            \Core\HttpResponse::jsonResponse($response,$data);
+            return;
+        }
+    }
+    //验证通过邮箱验证码更改密码
+    public function change_pwd_by_email_captcha($pdo,$req,$response,$redisPool){
+        if ($req['request_method'] === 'POST') {
+            $json = $req['raw_content'];
+            $data = Utils::judge_user_setting($json);
+            if($data['status']===0){
+                \Core\HttpResponse::jsonResponse($response,$data);
+                return;
+            }
+            //获取上下文
+            $ctx = \Swoole\Coroutine::getContext();
+            $user_id = $ctx['user_id'] ?? '';
+
+            $r = Db::select_data_by_userid_users($pdo,$user_id,['id','pwd','email','captcha','captcha_update_time']);
+            
+            if($r['code']==0){
+                $data = array('status' => 0,'msg' => "数据库查询失败");
+                \Core\HttpResponse::jsonResponse($response,$data);
+                return;
+            }
+            if(!$r['data']){
+                $data = array('status' => 0,'msg' => "该id没有查询到信息");
+                \Core\HttpResponse::jsonResponse($response,$data);
+                return;
+            }
+            
+            $email_captcha = $data['captcha_email'];
+            $new_pwd = $data['new_pwd'];
+
+            $seconds = time() - strtotime($r['data']['captcha_update_time']);
+            if($seconds>90){
+                $data = array('status' => 0,'message' =>'邮箱验证码过期，请重新获取验证码');
+                \Core\HttpResponse::jsonResponse($response,$data);
+                return;
+            }
+            
+            if($r['data']['captcha'] != $email_captcha){
+                $data = array('status' => 0,'msg' =>'验证码错误');
+                \Core\HttpResponse::jsonResponse($response,$data);
+                return;
+            }
+
+            $r = Db::update_data_users($pdo,$r['data']['email'],['pwd'=>hash('sha256',$new_pwd.'jiaoyan')]);
+            if($r['code']==0){
+                $data = array('status' => 0,'msg' =>'更新密码失败');
+                \Core\HttpResponse::jsonResponse($response,$data);
+                return;
+            }
+            $data = array('status' => 1,'msg' =>'更新密码成功');
+            \Core\HttpResponse::jsonResponse($response,$data);
+            return;
+
+        }else{
+            $data = array('status' => 0,'msg' => '请使用post请求');
+            \Core\HttpResponse::jsonResponse($response,$data);
             return;
         }
     }
