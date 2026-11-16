@@ -66,7 +66,6 @@ class Utils{
         }
         return array('status' => 1, 'msg' => '合法','email'=>$email);
     }
-
     //验证注册表单是否合法
     public static function judgeRegisterForm(string $json){
         $post_json=json_decode($json,true);
@@ -177,26 +176,30 @@ class Utils{
         }
         return array('status' => 1, 'msg' => '合法','email'=>$email,'email_captcha'=>$email_captcha,'picture_captcha'=>$picture_captcha,'key'=>$key);
     }
-    public static function judge_user_setting(string $json){
+    public static function judge_user_setting(string $json,bool $p,bool $c){
         $post_json=json_decode($json,true);
         if (!is_array($post_json) || array_is_list($post_json)) {
             $response=array('status' => 0, 'msg' => 'JSON 格式错误');
             return $response;
         }
-        $pwd = $post_json['pwd'] ?? 'skWdjfhIJadjkfs8j';
-        if($pwd === null || !is_string($pwd) || trim($pwd) === '' || mb_strlen($pwd) >20 || mb_strlen($pwd) <6){
-            $response=array('status' => 0, 'msg' => '密码不能为空或长度小于6或大于20');
-            return $response;
+        $pwd = $post_json['pwd'] ?? null;
+        if($p){
+            if($pwd === null || !is_string($pwd) || trim($pwd) === '' || mb_strlen($pwd) >20 || mb_strlen($pwd) <6){
+                $response=array('status' => 0, 'msg' => '密码不能为空或长度小于6或大于20');
+                return $response;
+            }
         }
         $new_pwd = $post_json['new_pwd'] ?? null;
         if($new_pwd === null || !is_string($new_pwd) || trim($new_pwd) === '' || mb_strlen($new_pwd) >20 || mb_strlen($new_pwd) <6){
             $response=array('status' => 0, 'msg' => '新密码不能为空或长度小于6或大于20');
             return $response;
         }
-        $captcha_email = $post_json['captcha_email'] ?? '0000';
-        if($captcha_email === null || !is_string($captcha_email) || trim($captcha_email) === '' || mb_strlen($captcha_email) >6){
-            $response=array('status' => 0, 'msg' => '邮箱验证码不能为空或长度不符');
-            return $response;
+        $captcha_email = $post_json['captcha_email'] ?? null;
+        if($c){
+            if($captcha_email === null || !is_string($captcha_email) || trim($captcha_email) === '' || mb_strlen($captcha_email) >6){
+                $response=array('status' => 0, 'msg' => '邮箱验证码不能为空或长度不符');
+                return $response;
+            }
         }
         return array('status' => 1, 'msg' => '合法','old_pwd'=>$pwd,'new_pwd'=>$new_pwd,'captcha_email'=>$captcha_email);
     }

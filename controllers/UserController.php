@@ -2,12 +2,12 @@
 require_once BASE_PATH . '/core/HttpResponse.php';
 require_once BASE_PATH  . '/core/Crypto.php';
 require_once BASE_PATH  . '/core/Utils.php';
-require_once BASE_PATH  . '/core/Db.php';
+require_once BASE_PATH  . '/core/Db/DbUser.php';
 require_once BASE_PATH . '/config/send_email_init.php';
 
 use Core\Crypto;
 use Core\Utils;
-use Core\Db;
+use Core\Db\DbUser;
 
 class UserController
 {
@@ -67,7 +67,7 @@ class UserController
             }
             $email = $rdata['email'];
             
-            $select_email=Db::select_data_by_meail_users($pdo,$email,['captcha_update_time']);
+            $select_email=DbUser::select_data_by_meail_users($pdo,$email,['captcha_update_time']);
             //查看这个数据库里是否有这个邮箱的信息
             if($select_email['code']==0){
                 $rdata = array('status' => 0,'msg' => '查询sql失败');
@@ -98,7 +98,7 @@ class UserController
                 }
                 
                 $now = (new DateTime())->format('Y-m-d H:i:s');
-                $r=Db::update_data_users($pdo,$email,['captcha'=>$captcha,'captcha_update_time'=>$now]);  //更新验证码
+                $r=DbUser::update_data_users($pdo,$email,['captcha'=>$captcha,'captcha_update_time'=>$now]);  //更新验证码
                 if($r['code']==0){
                     $rdata=array('status' => 0,'msg' => '更新失败');
                     \Core\HttpResponse::jsonResponse($response,$rdata,500);
@@ -120,7 +120,7 @@ class UserController
                     return;
                 }
                 $now = (new DateTime())->format('Y-m-d H:i:s');
-                $r=Db::insert_data_users($pdo,['email'=>$email,'captcha'=>$captcha,'captcha_update_time'=>$now]);
+                $r=DbUser::insert_data_users($pdo,['email'=>$email,'captcha'=>$captcha,'captcha_update_time'=>$now]);
                 if($r==0){
                     $rdata=array('status' => 0,'msg' => '插入失败');
                     \Core\HttpResponse::jsonResponse($response,$rdata,500);
@@ -169,7 +169,7 @@ class UserController
 
             
             
-            $data = Db::select_data_by_meail_users($pdo,$email,['captcha','captcha_update_time','pwd']);
+            $data = DbUser::select_data_by_meail_users($pdo,$email,['captcha','captcha_update_time','pwd']);
             if($data['code']==0){
                 $rdata = array('status' => 0,'msg' =>'查询验证码失败');
                 \Core\HttpResponse::jsonResponse($response,$rdata);
@@ -198,7 +198,7 @@ class UserController
                 $token=Utils::get_Token();
                 $now = (new DateTime())->format('Y-m-d H:i:s');
                 
-                $r = Db::update_data_users($pdo,$email,['pwd'=>$pwd,'token'=>$token,'token_update_time'=>$now,'register_time'=>$now]);
+                $r = DbUser::update_data_users($pdo,$email,['pwd'=>$pwd,'token'=>$token,'token_update_time'=>$now,'register_time'=>$now]);
                 if($r['code']==0){
                     $rdata = array('status' => 0,'msg' =>'注册sql失败');
                     \Core\HttpResponse::jsonResponse($response,$rdata,500);
@@ -251,7 +251,7 @@ class UserController
                 $redisPool->put($redis);   // 必须归还
             }
 
-            $pwd_data = Db::select_data_by_meail_users($pdo,$email,['pwd']);
+            $pwd_data = DbUser::select_data_by_meail_users($pdo,$email,['pwd']);
             if($pwd_data['code'] == 0){
                 $rdata = array('status' => 0,'msg' =>'查询密码失败');
                 \Core\HttpResponse::jsonResponse($response,$rdata);
@@ -271,7 +271,7 @@ class UserController
                 }
                 $token = Utils::get_Token();
                 $now = (new DateTime())->format('Y-m-d H:i:s');
-                $r = Db::update_data_users($pdo,$email,['token'=>$token,'token_update_time'=>$now]);
+                $r = DbUser::update_data_users($pdo,$email,['token'=>$token,'token_update_time'=>$now]);
                 if($r['code']==0){
                     $rdata = array('status' => 0,'msg' =>'登录sql失败');
                     \Core\HttpResponse::jsonResponse($response,$rdata);
@@ -323,7 +323,7 @@ class UserController
             }
 
 
-            $captcha_data = Db::select_data_by_meail_users($pdo,$email,['captcha','captcha_update_time','pwd']);
+            $captcha_data = DbUser::select_data_by_meail_users($pdo,$email,['captcha','captcha_update_time','pwd']);
 
             if($captcha_data['code'] == 0){
                 $rdata = array('status' => 0,'msg' =>'查询失败');
@@ -350,13 +350,13 @@ class UserController
                 }
                 $token = Utils::get_Token();
                 $now = (new DateTime())->format('Y-m-d H:i:s');
-                $r = Db::update_data_users($pdo,$email,['token'=>$token,'token_update_time'=>$now,'register_time'=>$now]);
+                $r = DbUser::update_data_users($pdo,$email,['token'=>$token,'token_update_time'=>$now,'register_time'=>$now]);
                 if($r['code']==0){
                     $rdata = array('status' => 0,'msg' =>'sql更新失败');
                     \Core\HttpResponse::jsonResponse($response,$rdata);
                     return;
                 }
-                $rdata = array('status' => 1,'msg' =>'登录成功');
+                $rdata = array('status' => 1,'msg' =>'登录成功','token'=>$token);
                 \Core\HttpResponse::jsonResponse($response,$rdata);
                 return;
             }else{
@@ -382,7 +382,7 @@ class UserController
                 $token = $m[1];
             }
             
-            $r = Db::select_data_by_token_users($pdo,$token,['email','token_update_time']);
+            $r = DbUser::select_data_by_token_users($pdo,$token,['email','token_update_time']);
             if($r['code']==0){
                 $rdata = array('status' => 0,'msg' =>'token查询失败');
                 \Core\HttpResponse::jsonResponse($response,$rdata);
@@ -414,7 +414,7 @@ class UserController
     public function change_pwd_by_old_pwd($pdo, $req,$response,$redisPool){
         if ($req['request_method'] === 'POST') {
             $json = $req['raw_content'];
-            $data = Utils::judge_user_setting($json);
+            $data = Utils::judge_user_setting($json,true,false);
             if($data['status']===0){
                 \Core\HttpResponse::jsonResponse($response,$data);
                 return;
@@ -423,7 +423,7 @@ class UserController
             $ctx = \Swoole\Coroutine::getContext();
             $user_id = $ctx['user_id'] ?? '';
 
-            $r = Db::select_data_by_userid_users($pdo,$user_id,['id','pwd','email']);
+            $r = DbUser::select_data_by_userid_users($pdo,$user_id,['id','pwd','email']);
             
             if($r['code']==0){
                 $data = array('status' => 0,'msg' => "数据库查询失败");
@@ -445,7 +445,7 @@ class UserController
                 return;
             }
 
-            $r = Db::update_data_users($pdo,$r['data']['email'],['pwd'=>hash('sha256',$new_pwd.'jiaoyan')]);
+            $r = DbUser::update_data_users($pdo,$r['data']['email'],['pwd'=>hash('sha256',$new_pwd.'jiaoyan')]);
             if($r['code']==0){
                 $data = array('status' => 0,'msg' =>'更新密码失败');
                 \Core\HttpResponse::jsonResponse($response,$data);
@@ -464,7 +464,7 @@ class UserController
     public function change_pwd_by_email_captcha($pdo,$req,$response,$redisPool){
         if ($req['request_method'] === 'POST') {
             $json = $req['raw_content'];
-            $data = Utils::judge_user_setting($json);
+            $data = Utils::judge_user_setting($json,false,true);
             if($data['status']===0){
                 \Core\HttpResponse::jsonResponse($response,$data);
                 return;
@@ -473,7 +473,7 @@ class UserController
             $ctx = \Swoole\Coroutine::getContext();
             $user_id = $ctx['user_id'] ?? '';
 
-            $r = Db::select_data_by_userid_users($pdo,$user_id,['id','pwd','email','captcha','captcha_update_time']);
+            $r = DbUser::select_data_by_userid_users($pdo,$user_id,['id','pwd','email','captcha','captcha_update_time']);
             
             if($r['code']==0){
                 $data = array('status' => 0,'msg' => "数据库查询失败");
@@ -491,7 +491,7 @@ class UserController
 
             $seconds = time() - strtotime($r['data']['captcha_update_time']);
             if($seconds>90){
-                $data = array('status' => 0,'message' =>'邮箱验证码过期，请重新获取验证码');
+                $data = array('status' => 0,'msg' =>'邮箱验证码过期，请重新获取验证码');
                 \Core\HttpResponse::jsonResponse($response,$data);
                 return;
             }
@@ -502,7 +502,7 @@ class UserController
                 return;
             }
 
-            $r = Db::update_data_users($pdo,$r['data']['email'],['pwd'=>hash('sha256',$new_pwd.'jiaoyan')]);
+            $r = DbUser::update_data_users($pdo,$r['data']['email'],['pwd'=>hash('sha256',$new_pwd.'jiaoyan')]);
             if($r['code']==0){
                 $data = array('status' => 0,'msg' =>'更新密码失败');
                 \Core\HttpResponse::jsonResponse($response,$data);

@@ -10,6 +10,10 @@ return [
     '/user/login_by_email'         => ['controller' => 'UserController',    'action' => 'login_by_email',        'auth' => false,],
     '/user/verify_token'           => ['controller' => 'UserController',    'action' => 'verify_token',          'auth' => true,],
 
+    '/music/get_music_list'        => ['controller' => 'MusicController',   'action' => 'get_music_list',        'auth' => true,],
+    '/music/toggle_favorites_music'=> ['controller' => 'MusicController',   'action' => 'toggle_favorites_music','auth' => true,],
+    '/music/search_music'          => ['controller' => 'MusicController',   'action' => 'search_music',          'auth' => true,],
+
 
     //需要鉴权的接口
     '/user/change_pwd_by_old_pwd'        => ['controller' => 'UserController',    'action' => 'change_pwd_by_old_pwd',       'auth' => true,],

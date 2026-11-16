@@ -1,14 +1,14 @@
 <?php
 //拦截器
-require_once BASE_PATH  . '/core/Db.php';
-use Core\Db;
+require_once BASE_PATH  . '/core/Db/DbUser.php';
+use Core\Db\DbUser;
 require_once BASE_PATH . '/core/HttpResponse.php';
 use Core\HttpResponse;      //语法糖，起短名
 
 class AuthMiddleware {
     public function handle($pdo): array {
         //获取需要的对象和数据
-        $db = new Db;
+        $db = new DbUser;
         $ctx = \Swoole\Coroutine::getContext();
         $response = $ctx['response'];
         $req=$ctx['req'];
