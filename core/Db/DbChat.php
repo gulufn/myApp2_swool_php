@@ -84,7 +84,7 @@ class DbChat
             $statement->bindValue(':link', $link, \PDO::PARAM_INT);
             // 执行 sql
             $statement->execute();
-            $rows = $statement->fetchall();
+            $rows = $statement->fetch();
 
             // $rdata = ['sql' => $sql, 'data' =>$rows];
             return ['code' => '1', 'msg' => 'sql执行成功', 'data' => $rows];

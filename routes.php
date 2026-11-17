@@ -15,6 +15,12 @@ return [
     '/music/search_music'          => ['controller' => 'MusicController',   'action' => 'search_music',          'auth' => true,],
     '/music/get_music_list_collect'=> ['controller' => 'MusicController',   'action' => 'get_music_list_collect','auth' => true,],
 
+    '/home/get_chat_list'          => ['controller' => 'AiChatController',  'action' => 'get_chat_list',         'auth' => true,],
+    '/home/create_chat_task'       => ['controller' => 'AiChatController',  'action' => 'create_chat_task',      'auth' => true,],
+    '/home/get_answer'             => ['controller' => 'AiChatController',  'action' => 'get_answer',            'auth' => true,],
+    '/home/get_task'               => ['controller' => 'AiChatController',  'action' => 'get_task',              'auth' => false,],
+    '/home/submit_task'            => ['controller' => 'AiChatController',  'action' => 'submit_task',           'auth' => false,],
+
 
     //需要鉴权的接口
     '/user/change_pwd_by_old_pwd'        => ['controller' => 'UserController',    'action' => 'change_pwd_by_old_pwd',       'auth' => true,],
