@@ -13,6 +13,7 @@ return [
     '/music/get_music_list'        => ['controller' => 'MusicController',   'action' => 'get_music_list',        'auth' => true,],
     '/music/toggle_favorites_music'=> ['controller' => 'MusicController',   'action' => 'toggle_favorites_music','auth' => true,],
     '/music/search_music'          => ['controller' => 'MusicController',   'action' => 'search_music',          'auth' => true,],
+    '/music/get_music_list_collect'=> ['controller' => 'MusicController',   'action' => 'get_music_list_collect','auth' => true,],
 
 
     //需要鉴权的接口

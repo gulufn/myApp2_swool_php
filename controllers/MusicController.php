@@ -180,6 +180,86 @@ class MusicController
         }
     }
 
+    // 获取收藏的音乐列表
+    public function get_music_list_collect($pdo, $req,$response,$redisPool)
+    {
+        if ($req['request_method'] === 'POST') {
+            $json = $req['raw_content'];
+
+            $post_json=json_decode($json,true);
+            if (!is_array($post_json) || array_is_list($post_json)) {
+                $data=array('status' => 0, 'msg' => 'JSON 格式错误');
+                \Core\HttpResponse::jsonResponse($response,$data);
+                return;
+            }
+            
+            $youbiao=$post_json['create_at'];
+            if(!is_string($youbiao)){
+                $data=array('status' => 0, 'msg' => '游标必须是string类型');
+                \Core\HttpResponse::jsonResponse($response,$data);
+                return;
+            }
+            
+            //获取上下文
+            $ctx = \Swoole\Coroutine::getContext();
+            $user_id = $ctx['user_id'] ?? '';
+
+            if($youbiao == '0'){
+                $r = DbMusicFavorites::select_data_by_userid_userMusicFavorites($pdo,$user_id);
+                if($r['code'==0]){
+                    $data = array('status' => 0,'msg' => "数据查询失败");
+                    \Core\HttpResponse::jsonResponse($response,$data,500);
+                    return;
+                }
+                $music_collecp=[];
+                $n=0;
+                foreach ($r['data'] as $i){
+                    $r1 = DbMusic::select_data_by_id_music($pdo,$i['music_id'],['id','name','title','artist']);
+
+                    $r1['data']['created_at'] = $i['created_at'];
+                    $r1['data']['collectd_id'] = $i['id'];
+                    $r1['data']['is_favorite'] = true;
+                    $music_collecp[$n]=$r1['data'];
+                    $n++;
+                }
+                $key = Crypto::encrypt((string)time());
+                $rdata = array('key'=>$key,'data'=>$music_collecp);
+                $data = array('status' => 1,'msg' => "成功",'data'=>$rdata);
+                \Core\HttpResponse::jsonResponse($response,$data);
+                return;
+            }else{
+                $r = DbMusicFavorites::select_data_by_userid_youbiao_userMusicFavorites($pdo,$user_id,$youbiao);
+                if($r['code'==0]){
+                    $data = array('status' => 0,'msg' => "数据查询失败");
+                    \Core\HttpResponse::jsonResponse($response,$data,500);
+                    return;
+                }
+
+                $music_collecp=[];
+                $n=0;
+                foreach ($r['data']['data'] as $i){
+                    $r1 = DbMusic::select_data_by_id_music($pdo,$i['music_id'],['id','name','title','artist']);
+
+                    $r1['data']['created_at'] = $i['created_at'];
+                    $r1['data']['collectd_id'] = $i['id'];
+                    $r1['data']['is_favorite'] = true;
+                    $music_collecp[$n]=$r1['data'];
+                    $n++;
+                }
+                $key = Crypto::encrypt((string)time());
+                $rdata = array('key'=>$key,'data'=>$music_collecp);
+                $data = array('status' => 1,'msg' => "成功",'data'=>$rdata);
+                \Core\HttpResponse::jsonResponse($response,$data);
+                return;
+            }
+        }else{
+            $data = array('status' => 0,'msg' => '请使用post请求');
+            \Core\HttpResponse::jsonResponse($response,$data);
+            return;
+        }
+    }
+
+
 
 
 
