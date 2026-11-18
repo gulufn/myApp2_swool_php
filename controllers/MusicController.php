@@ -206,7 +206,7 @@ class MusicController
 
             if($youbiao == '0'){
                 $r = DbMusicFavorites::select_data_by_userid_userMusicFavorites($pdo,$user_id);
-                if($r['code'==0]){
+                if($r['code']==0){
                     $data = array('status' => 0,'msg' => "数据查询失败");
                     \Core\HttpResponse::jsonResponse($response,$data,500);
                     return;
@@ -229,7 +229,7 @@ class MusicController
                 return;
             }else{
                 $r = DbMusicFavorites::select_data_by_userid_youbiao_userMusicFavorites($pdo,$user_id,$youbiao);
-                if($r['code'==0]){
+                if($r['code']==0){
                     $data = array('status' => 0,'msg' => "数据查询失败");
                     \Core\HttpResponse::jsonResponse($response,$data,500);
                     return;

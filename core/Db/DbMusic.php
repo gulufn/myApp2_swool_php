@@ -194,7 +194,7 @@ class DbMusic
             //执行sql
             $statement->execute();
             $rows = $statement->fetchAll();
-            return ['code'=>'1','msg'=>'成功','data'=>$row === false ? false : $rows];
+            return ['code'=>'1','msg'=>'成功','data'=>$rows === false ? false : $rows];
         }catch (\PDOException $e) {
             $rdata=['sql'=>$sql,'error'=>$e->getMessage(),'sqlstate'=>$e->getCode(),'params'=>$fields];
             return ['code'=>'0','msg'=>'sql执行失败','data'=>$rdata];

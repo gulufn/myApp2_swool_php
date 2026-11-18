@@ -10,7 +10,13 @@ class HttpResponse{
      * @param  int                     $status       给浏览器看的http状态码
      */
     public static function jsonResponse(\Swoole\Http\Response $response,array $data, int $status = 200): void {
-        $response->status($status);
+        // 检查响应是否仍可写，避免在已 end 后继续操作
+        if (!$response->isWritable()) {
+            return; // 或者记录日志，但不要再操作 $response
+        }
+
+
+        $response->status((string)$status);
         // 设置响应类型，json格式
         $response->header('Content-Type', 'application/json; charset=utf-8');
         // 响应的是json, 中文等非 ASCII 字符不转义，原样输出 | 输出带缩进换行的格式化 JSON，便于阅读,

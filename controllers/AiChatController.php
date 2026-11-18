@@ -40,7 +40,7 @@ class AiChatController
 
             if($youbiao == '0'){
                 $r = DbChat::select_data_by_userid_chat($pdo,$user_id);
-                if($r['code'== 0]){
+                if($r['code']== 0){
                     $data = array('status' => 0,'msg' => "数据查询失败");
                     \Core\HttpResponse::jsonResponse($response,$data,500);
                     return;
@@ -50,7 +50,7 @@ class AiChatController
                 return;
             }else{
                 $r = DbChat::select_data_by_userid_youbiao_chat($pdo,$user_id,$youbiao);
-                if($r['code'==0]){
+                if($r['code']==0){
                     $data = array('status' => 0,'msg' => "数据查询失败");
                     \Core\HttpResponse::jsonResponse($response,$data);
                     return;
